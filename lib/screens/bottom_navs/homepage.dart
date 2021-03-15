@@ -12,18 +12,27 @@ class _HomePageState extends State<HomePage> {
     List<String> items = [];
     for (var i = 0; i < 18; i++) {
       if (i.isEven) {
-        items.add("Red");
+        items.add("$i Red");
       } else {
-        items.add("Green");
+        items.add("$i Green");
       }
     }
-    int selected = 0;
+    int selected = 5;
     return Container(
       child: Center(
         child: FortuneWheel(
-          duration: Duration(seconds: 30),
-          items: [for (var i in items) FortuneItem(child: Text(i))],
-          onFling: () => selected = 1,
+          duration: Duration(seconds: 5),
+          items: [
+            for (var i in items)
+              FortuneItem(
+                child: Text(i),
+                style: FortuneItemStyle(
+                  color:
+                      i.contains("Red") ? Color(0xFF8B0000) : Color(0xFF006400),
+                ),
+              ),
+          ],
+          //onFling: () => selected = 2,
           selected: selected,
         ),
       ),

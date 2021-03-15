@@ -1,8 +1,12 @@
+import 'package:bidding_app/screens/AdminHome.dart';
+import 'package:bidding_app/screens/mainpage.dart';
 import 'package:bidding_app/services/authservice.dart';
 import 'package:bidding_app/utilites/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,6 +14,20 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final AuthService _auth = AuthService();
+  final _key = GlobalKey<ScaffoldState>();
+  Future<bool> checkIfDocExists(String docId) async {
+    try {
+      // Get reference to Firestore collection
+      var collectionRef = FirebaseFirestore.instance.collection('AdminUser');
+
+      var doc = await collectionRef.doc(docId).get();
+      return doc.exists;
+    } catch (e) {
+      throw e;
+    }
+  }
+
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   Widget _buildEmailTF() {
@@ -108,15 +126,62 @@ class _LoginPageState extends State<LoginPage> {
           ),
           primary: Colors.white,
         ),
-        onPressed: () {
-          context.read<AuthService>().signIn(
-                email: emailController.text.trim(),
-                password: passwordController.text.trim(),
-              );
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            "/mainpage",
-            (Route<dynamic> route) => false,
-          );
+        onPressed: () async {
+          print(emailController.text.isEmpty);
+          if (emailController.text.isEmpty) {
+            _key.currentState
+                .showSnackBar(SnackBar(content: Text("Email is Empty")));
+          } else if (passwordController.text.isEmpty) {
+            _key.currentState
+                .showSnackBar(SnackBar(content: Text("Password is Empty")));
+          } else {
+            await _auth
+                .signIn(emailController.text, passwordController.text)
+                .then((value) async {
+              SharedPreferences preferences =
+                  await SharedPreferences.getInstance();
+              if (value == null) {
+                _key.currentState.showSnackBar(SnackBar(
+                    content: Text(
+                        "Wrong Credentials or Email is not verified yet")));
+              } else {
+                bool docExists = await checkIfDocExists(value.toString());
+
+                // preferences.setString(
+                //   'email',
+                //   _email.text,);
+                // print(docExists);
+                // print(_email.text);
+                // print(value.toString());
+                preferences.setStringList(
+                  'task',
+                  [
+                    emailController.text,
+                    value.toString(),
+                    docExists.toString()
+                  ],
+                );
+
+                // 'useruid',
+                // value.toString(),
+                // 'docExists',
+                // docExists,
+                // );
+                // bool docExists = await checkIfDocExists(
+                //     value.toString());
+
+                if (docExists) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => AdminHome()),
+                      (Route<dynamic> route) => false);
+                } else {
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => MainPage()),
+                      (Route<dynamic> route) => false);
+                }
+              }
+            });
+          }
         },
         child: Text(
           'LOGIN',
@@ -162,6 +227,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _key,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: GestureDetector(
@@ -171,19 +237,19 @@ class _LoginPageState extends State<LoginPage> {
               Container(
                 height: double.infinity,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF73AEF5),
-                      Color(0xFF61A4F1),
-                      Color(0xFF478DE0),
-                      Color(0xFF398AE5),
-                    ],
-                    stops: [0.1, 0.4, 0.7, 0.9],
-                  ),
-                ),
+                // decoration: BoxDecoration(
+                //   gradient: LinearGradient(
+                //     begin: Alignment.topCenter,
+                //     end: Alignment.bottomCenter,
+                //     colors: [
+                //       Color(0xFF73AEF5),
+                //       Color(0xFF61A4F1),
+                //       Color(0xFF478DE0),
+                //       Color(0xFF398AE5),
+                //     ],
+                //     stops: [0.1, 0.4, 0.7, 0.9],
+                //   ),
+                // ),
               ),
               Container(
                 height: double.infinity,

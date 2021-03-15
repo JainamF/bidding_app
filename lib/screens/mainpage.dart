@@ -4,6 +4,7 @@ import 'package:bidding_app/screens/bottom_navs/homepage.dart';
 import 'package:bidding_app/services/authservice.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -30,7 +31,10 @@ class _MainPageState extends State<MainPage> {
         title: Text("Casino"),
         actions: [
           IconButton(
-            onPressed: () {
+            onPressed: () async {
+              SharedPreferences preferences =
+                  await SharedPreferences.getInstance();
+              preferences.setStringList('task', null);
               context.read<AuthService>().signOut();
               Navigator.of(context).pushNamedAndRemoveUntil(
                 "/login",

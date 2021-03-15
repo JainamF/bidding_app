@@ -1,3 +1,4 @@
+import 'package:bidding_app/screens/AdminHome.dart';
 import 'package:bidding_app/screens/Auth/loginpage.dart';
 import 'package:bidding_app/screens/Auth/register.dart';
 import 'package:bidding_app/screens/bottom_navs/editprofilepage.dart';
@@ -16,37 +17,66 @@ Future<void> main() async {
   await Firebase.initializeApp();
   //SystemChrome.setEnabledSystemUIOverlays([]);
   SharedPreferences preferences = await SharedPreferences.getInstance();
-  List<String> status = preferences.getStringList('credential');
-  runApp(MyApp(status: status));
-}
-
-class MyApp extends StatelessWidget {
-  final List<String> status;
-  MyApp({this.status});
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<AuthService>(
-            create: (_) => AuthService(FirebaseAuth.instance)),
-      ],
-      child: MaterialApp(
-        theme: ThemeData(
-          cardTheme: CardTheme(color: Colors.blue[50]),
-          primaryColor: Color(0xFF398AE5),
-          accentColor: Color(0xFF73AEF5),
-        ),
-        debugShowCheckedModeBanner: false,
-        home: status == null ? LoginPage() : MainPage(),
-        //home: AuthService().handleAuth(),
-
-        routes: {
-          '/login': (context) => LoginPage(),
-          '/register': (context) => Register(),
-          '/mainpage': (context) => MainPage(),
-          '/editprofile': (context) => EditProfilePage(),
-        },
+  var task = preferences.getStringList('task');
+  print(task);
+  runApp(MultiProvider(
+    providers: [
+      Provider<AuthService>(create: (_) => AuthService()),
+    ],
+    child: MaterialApp(
+      theme: ThemeData(
+        cardTheme: CardTheme(color: Colors.blue[50]),
+        primaryColor: Color(0xFF398AE5),
+        accentColor: Color(0xFF73AEF5),
       ),
-    );
-  }
+      debugShowCheckedModeBanner: false,
+      home: task == null
+          ? LoginPage()
+          : task[2] == "true"
+              ? AdminHome()
+              : MainPage(),
+      //home: AuthService().handleAuth(),
+
+      routes: {
+        '/login': (context) => LoginPage(),
+        '/register': (context) => Register(),
+        '/mainpage': (context) => MainPage(),
+        '/editprofile': (context) => EditProfilePage(),
+      },
+    ),
+  ));
 }
+
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     SharedPreferences preferences = await SharedPreferences.getInstance();
+//     var task = preferences.getStringList('task');
+//     return MultiProvider(
+//       providers: [
+//         Provider<AuthService>(create: (_) => AuthService()),
+//       ],
+//       child: MaterialApp(
+//         theme: ThemeData(
+//           cardTheme: CardTheme(color: Colors.blue[50]),
+//           primaryColor: Color(0xFF398AE5),
+//           accentColor: Color(0xFF73AEF5),
+//         ),
+//         debugShowCheckedModeBanner: false,
+//         home: task == null
+//             ? LoginPage()
+//             : task[2] == "true"
+//                 ? AdminHome()
+//                 : MainPage(),
+//         //home: AuthService().handleAuth(),
+
+//         routes: {
+//           '/login': (context) => LoginPage(),
+//           '/register': (context) => Register(),
+//           '/mainpage': (context) => MainPage(),
+//           '/editprofile': (context) => EditProfilePage(),
+//         },
+//       ),
+//     );
+//   }
+// }

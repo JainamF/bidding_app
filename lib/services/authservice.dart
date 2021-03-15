@@ -3,9 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final FirebaseAuth _firebaseAuth;
-  AuthService(this._firebaseAuth);
-
+  final _firebaseAuth = FirebaseAuth.instance;
   Stream<User> get authStateChanges => _firebaseAuth.authStateChanges();
   User get currentUser => _firebaseAuth.currentUser;
   Future<String> get userName async {
@@ -16,13 +14,16 @@ class AuthService {
     return documentSnapshot.data()['name'];
   }
 
-  Future<String> signIn({String email, String password}) async {
+  Future<String> signIn(String email, String password) async {
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
+      UserCredential result = await _firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      preferences.setStringList('credential', [email, password]);
-      return 'Signed In';
+      User user = result.user;
+      if (user == null) {
+        return null;
+      } else {
+        return user.uid;
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         return 'No user found for that email.';
@@ -33,14 +34,17 @@ class AuthService {
     }
   }
 
-  Future<String> signUp({String name, String email, String password}) async {
+  Future<String> signUp(String name, String email, String password) async {
     try {
-      await _firebaseAuth
-          .createUserWithEmailAndPassword(email: email, password: password)
-          .then((user) {
-        FirebaseFirestore.instance
+      UserCredential result = await _firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
+      User user = result.user;
+      if (user == null) {
+        return null;
+      } else {
+        await FirebaseFirestore.instance
             .collection("All Users")
-            .doc(user.user.uid)
+            .doc(user.uid)
             .set({
           'name': name,
           'email': email,
@@ -48,13 +52,14 @@ class AuthService {
           'img':
               "https://firebasestorage.googleapis.com/v0/b/biddingapp-d5dec.appspot.com/o/l60Hf.png?alt=media&token=bb39635b-f296-4054-a845-de4dc3418f48",
         });
-        FirebaseFirestore.instance.collection("Funds").doc(user.user.uid).set({
-          'avaliable': 500,
-          'deposit': 500,
+        await FirebaseFirestore.instance.collection("Funds").doc(user.uid).set({
+          'avaliable': 0,
+          'deposit': 0,
           'withdrawal': 0,
         });
-      });
-      return 'Signed Up';
+
+        return user.uid;
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         return 'The password provided is too weak.';

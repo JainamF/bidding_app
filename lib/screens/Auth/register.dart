@@ -4,12 +4,16 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'loginpage.dart';
+
 class Register extends StatefulWidget {
   @override
   _RegisterState createState() => _RegisterState();
 }
 
 class _RegisterState extends State<Register> {
+  final AuthService _auth = AuthService();
+  final _key = GlobalKey<ScaffoldState>();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController nameController = TextEditingController();
@@ -131,13 +135,32 @@ class _RegisterState extends State<Register> {
           ),
           primary: Colors.white,
         ),
-        onPressed: () {
-          context.read<AuthService>().signUp(
-                name: nameController.text,
-                email: emailController.text,
-                password: passwordController.text,
-              );
-          Navigator.of(context).pushReplacementNamed("/login");
+        onPressed: () async {
+          if (emailController.text.isEmpty) {
+            _key.currentState
+                .showSnackBar(SnackBar(content: Text("Email is Empty")));
+          } else if (passwordController.text.isEmpty) {
+            _key.currentState
+                .showSnackBar(SnackBar(content: Text("Name is Empty")));
+          } else if (nameController.text.isEmpty) {
+            _key.currentState
+                .showSnackBar(SnackBar(content: Text("Password is Empty")));
+          } else {
+            dynamic result = await _auth.signUp(nameController.text,
+                emailController.text, passwordController.text);
+            if (result == null) {
+              _key.currentState
+                  .showSnackBar(SnackBar(content: Text("Sign up failed")));
+            } else {
+              _key.currentState.showSnackBar(SnackBar(
+                  duration: const Duration(seconds: 4),
+                  content: Text("Email has been sent for verification")));
+
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  (Route<dynamic> route) => false);
+            }
+          }
         },
         child: Text(
           'REGISTER',
@@ -183,6 +206,7 @@ class _RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _key,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: GestureDetector(
@@ -192,19 +216,19 @@ class _RegisterState extends State<Register> {
               Container(
                 height: double.infinity,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF73AEF5),
-                      Color(0xFF61A4F1),
-                      Color(0xFF478DE0),
-                      Color(0xFF398AE5),
-                    ],
-                    stops: [0.1, 0.4, 0.7, 0.9],
-                  ),
-                ),
+                // decoration: BoxDecoration(
+                //   gradient: LinearGradient(
+                //     begin: Alignment.topCenter,
+                //     end: Alignment.bottomCenter,
+                //     // colors: [
+                //     //   Color(0xFF73AEF5),
+                //     //   Color(0xFF61A4F1),
+                //     //   Color(0xFF478DE0),
+                //     //   Color(0xFF398AE5),
+                //     // ],
+                //     // stops: [0.1, 0.4, 0.7, 0.9],
+                //   ),
+                // ),
               ),
               Container(
                 height: double.infinity,

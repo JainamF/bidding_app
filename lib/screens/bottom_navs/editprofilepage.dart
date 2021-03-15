@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../services/authservice.dart';
+
 // import 'package:settings_ui/pages/settings.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -14,6 +18,15 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  String useruid;
+  final _auth = FirebaseAuth.instance;
+  @override
+  void initState() {
+    super.initState();
+    useruid = _auth.currentUser.uid;
+    print(useruid);
+  }
+
   File _image;
   final picker = ImagePicker();
 
@@ -48,14 +61,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
           "https://firebasestorage.googleapis.com/v0/b/biddingapp-d5dec.appspot.com/o/l60Hf.png?alt=media&token=bb39635b-f296-4054-a845-de4dc3418f48") {
         String fileName = basename(_image.toString());
         FirebaseStorage storage = FirebaseStorage.instance;
-        Reference reference = storage.ref().child('User/$fileName');
+        Reference reference = storage.ref().child('users/$fileName');
         UploadTask uploadTask = reference.putFile(_image);
-        uploadTask.then((res) => res.ref.getDownloadURL());
-        await retrieveImage(context, 'User/$fileName');
+
+        // await uploadTask.whenComplete(() => null);
+        await uploadTask
+            .then((res) => retrieveImage(context, 'users/$fileName'));
+        // await retrieveImage(context, 'users/$fileName');
       } else {
         String filePath = fileUrl.replaceAll(
             new RegExp(
-                r'https://firebasestorage.googleapis.com/v0/b/artist-nowcare4u.appspot.com/o/'),
+                r'https://firebasestorage.googleapis.com/v0/b/biddingapp-d5dec.appspot.com/o/'),
             '');
 
         filePath = filePath.replaceAll(new RegExp(r'%2F'), "/");
@@ -63,15 +79,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
         filePath = filePath.replaceAll(new RegExp(r'(\?alt).*'), '');
 
         Reference storageReferance = FirebaseStorage.instance.ref();
+        print(filePath);
 
         await storageReferance.child(filePath).delete();
 
         String fileName = basename(_image.toString());
         Reference firebaseStorageRef =
-            FirebaseStorage.instance.ref().child('User/$fileName');
+            FirebaseStorage.instance.ref().child('users/$fileName');
         UploadTask uploadTask = firebaseStorageRef.putFile(_image);
-        uploadTask.then((res) => res.ref.getDownloadURL());
-        await retrieveImage(context, 'User/$fileName');
+        await uploadTask
+            .then((res) => retrieveImage(context, 'users/$fileName'));
+        // await uploadTask.whenComplete(() => null);
+        // uploadTask.then((res) => res.ref.getDownloadURL());
+        // await retrieveImage(context, 'users/$fileName');
       }
     }
 
@@ -114,7 +134,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         body: StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection("All Users")
-                .doc(userUid)
+                .doc(useruid)
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
@@ -267,23 +287,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             onChanged: (val) => setState(() => phone = val),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 35.0),
-                          child: TextField(
-                            decoration: InputDecoration(
-                                contentPadding: EdgeInsets.only(bottom: 3),
-                                labelText: "Bio",
-                                floatingLabelBehavior:
-                                    FloatingLabelBehavior.always,
-                                hintText: "${doc['bio']}",
-                                hintStyle: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                )),
-                            onChanged: (val) => setState(() => bio = val),
-                          ),
-                        ),
+                        // Padding(
+                        //   padding: const EdgeInsets.only(bottom: 35.0),
+                        //   child: TextField(
+                        //     decoration: InputDecoration(
+                        //         contentPadding: EdgeInsets.only(bottom: 3),
+                        //         labelText: "Bio",
+                        //         floatingLabelBehavior:
+                        //             FloatingLabelBehavior.always,
+                        //         hintText: "${doc['bio']}",
+                        //         hintStyle: TextStyle(
+                        //           fontSize: 16,
+                        //           fontWeight: FontWeight.bold,
+                        //           color: Colors.black,
+                        //         )),
+                        //     onChanged: (val) => setState(() => bio = val),
+                        //   ),
+                        // ),
                         // buildTextField("Full Name", "${doc['name']}", false),
                         // buildTextField("E-mail", "${doc['email']}", false),
                         // buildTextField("Phone No.", "${doc['phone']}", false),
@@ -325,18 +345,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 if (email == null) {
                                   email = doc['email'];
                                 }
-                                if (bio == null) {
-                                  bio = doc['bio'];
-                                }
+                                // if (bio == null) {
+                                //   bio = doc['bio'];
+                                // }
 
                                 await FirebaseFirestore.instance
-                                    .collection("NormalUser")
-                                    .doc(userUid)
+                                    .collection("All Users")
+                                    .doc(useruid)
                                     .update({
                                   'name': name,
                                   'phone': phone,
                                   'email': email,
-                                  'bio': bio,
                                   'img': img,
                                 });
                                 Navigator.pop(context);

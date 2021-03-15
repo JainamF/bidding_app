@@ -4,7 +4,7 @@ import 'package:bidding_app/screens/Auth/register.dart';
 import 'package:bidding_app/screens/bottom_navs/editprofilepage.dart';
 import 'package:bidding_app/screens/mainpage.dart';
 import 'package:bidding_app/services/authservice.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 //import 'package:bidding_app/services/authservice.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';

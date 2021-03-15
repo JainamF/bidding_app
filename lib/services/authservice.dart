@@ -53,7 +53,7 @@ class AuthService {
               "https://firebasestorage.googleapis.com/v0/b/biddingapp-d5dec.appspot.com/o/l60Hf.png?alt=media&token=bb39635b-f296-4054-a845-de4dc3418f48",
         });
         await FirebaseFirestore.instance.collection("Funds").doc(user.uid).set({
-          'avaliable': 0,
+          'available': 0,
           'deposit': 0,
           'withdrawal': 0,
         });

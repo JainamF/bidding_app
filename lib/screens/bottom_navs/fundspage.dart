@@ -40,7 +40,7 @@ class _FundsPageState extends State<FundsPage> {
                         children: [
                           ListTile(
                             title: Text("Avaliable Funds"),
-                            trailing: Text(map['avaliable'].toString()),
+                            trailing: Text(map['available'].toString()),
                           ),
                           Divider(),
                           ListTile(
